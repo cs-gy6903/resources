@@ -33,6 +33,7 @@
 - [Chunking Data](#chunking-data)
 - [Python Features](#python-features)
   - [Inline Functions (lambda)](#inline-functions-lambda)
+  - [Type Hints/Annotations](#type-hintsannotations)
 - [CLI](#cli)
   - [Arguments Parsing](#arguments-parsing)
   - [Fail](#fail)
@@ -481,6 +482,67 @@ b'\xca\x1ca7\xe6\xf5\xf4Kt\xe8'
 ```python
 >>> list(filter(lambda i: i > 5, [1, 3, 5, 7, 9]))
 [7, 9]
+```
+
+### Type Hints/Annotations
+
+- https://peps.python.org/pep-0483/
+- https://docs.python.org/3/library/typing.html
+- http://mypy-lang.org/
+- https://github.com/Microsoft/pyright
+
+Python is not a statically typed language. It is a strongly typed language as
+you cannot mix types at runtime:
+
+```python
+>>> 'a' + 5
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: can only concatenate str (not "int") to str
+
+can only concatenate str (not "int") to str
+```
+
+unlike for example javascript:
+
+```js
+> 'a' + 5
+'a5'
+```
+
+However the strong runtime types dont really help with writing code in the editor
+as that can only utilise static types. Thats where python type hints come in.
+Its a relatively new feature in Python3.5+ which allows to annotate types
+for variables, function parameters and function return values.
+This allows to statically validate python code.
+
+The basic syntax is:
+
+```python
+foo: <type> = <value>
+def bar(param: <param type>) -> <return type>:
+    ...
+```
+
+If the code is type-annotated most IDEs can statically validate it for you
+although you might need to install appropriate extensions. You can also validate
+types in CLI. For example given (see [`./types.py`](./types.py)):
+
+```python
+def foo(a: str) -> bytes:
+    return True
+
+
+foo(1)
+```
+
+`mypy` will produce:
+
+```bash
+➜ mypy types.py
+types.py:2: error: Incompatible return value type (got "bool", expected "bytes")
+types.py:5: error: Argument 1 to "foo" has incompatible type "int"; expected "str"
+Found 2 errors in 1 file (checked 1 source file)
 ```
 
 ## CLI
