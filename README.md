@@ -600,26 +600,123 @@ around OpenSSL, if we use it for CTR mode, it automatically increments all of
 - https://docs.pytest.org/en/stable/how-to/doctest.html
 
 A really useful testing feature in Python are doctests which allow to include
-tests in module/function doc strings. Some of the above examples actually already use doctests.
-For example `xor` function included tests. If the function is pasted to `xor.py` it could be tested with `pytest`:
-
-```bash
-➜ pytest --doctest-modules xor.py
-=================== test session starts ====================
-platform darwin -- Python 3.6.15, pytest-7.0.1, pluggy-1.0.0
-rootdir: applied_crypto_2022_spring
-plugins: subtests-0.7.0
-collected 1 item
-
-xor.py .                                             [100%]
-
-==================== 1 passed in 0.06s =====================
-```
-
+tests in module/function doc strings.
+(Some of the above examples actually already use doctests such as `xor`:D).
 Adding tests directly in doc-string allows to use the code documentation as
 both the documentation of example usage as well as runnable tests.
 This is especially useful for utility functions which can themselves check
 their correctness.
+
+The way doctests work is they use Python docstrings. Any string after function
+definition is considered a docstring in python. For example:
+
+```python
+>>> def foo():
+  2     "docstring here"
+>>> foo.__doc__
+'docstring here'
+
+>>> def bar(): pass
+>>> bar.__doc__ # no output here
+
+>>> def baz():
+  2     pass
+  3     "not a docsting as its not first statement inside function"
+>>> baz.__doc__ # no output here
+```
+
+Python allows to have multiline strings with `"""` notation so usually docstrings
+are defined using that:
+
+```python
+>>> def foo():
+  2     """
+  3     function description here
+  4     which spans multiple lines
+  5     """
+>>> print(foo.__doc__)
+
+    function description here
+    which spans multiple lines
+
+```
+
+What doctest does is it finds all lines in docstring which start with `>>>`,
+executes that code. For multiline statements subsequent lines need to start
+with `...`. For example:
+
+```python
+>>> def foo():
+  2     """
+  3     >>> foo(
+  4     ... )
+  5     """
+```
+
+It then compares the output the code produced to the lines in docstring.
+Note it matches things as strings, not Python values.
+[`./doctests.py`](./doctests.py) has a few doctest examples.
+To run tests you can use python itself:
+
+```python
+➜ python -m doctest doctests.py
+**********************************************************************
+File "doctests.py", line 11, in doctests.bar
+Failed example:
+    bar()
+Expected:
+    'world'
+Got:
+    'hello'
+**********************************************************************
+File "doctests.py", line 19, in doctests.baz
+Failed example:
+    baz()
+Expected nothing
+Got:
+    'hello'
+**********************************************************************
+2 items had failures:
+   1 of   1 in doctests.bar
+   1 of   1 in doctests.baz
+***Test Failed*** 2 failures.
+```
+
+A better way to run doctests though is using `pytest`. It provides much more
+useful error messages and has pretty colors :D:
+
+```bash
+➜ pytest --doctest-modules --no-header --verbose doctests.py
+==================== test session starts =====================
+collected 3 items
+
+doctests.py::doctests.bar FAILED                       [ 33%]
+doctests.py::doctests.baz FAILED                       [ 66%]
+doctests.py::doctests.foo PASSED                       [100%]
+
+========================== FAILURES ==========================
+___________________ [doctest] doctests.bar ___________________
+010
+011     >>> bar()
+Expected:
+    'world'
+Got:
+    'hello'
+
+doctests.py:11: DocTestFailure
+___________________ [doctest] doctests.baz ___________________
+018
+019     >>> baz()
+Expected nothing
+Got:
+    'hello'
+
+doctests.py:19: DocTestFailure
+================== short test summary info ===================
+FAILED doctests.py::doctests.bar
+FAILED doctests.py::doctests.baz
+================ 2 failed, 1 passed in 0.02s =================
+```
 
 ## Library Recommendations
 
