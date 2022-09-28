@@ -27,6 +27,10 @@
   - [Iterators/Generators](#iteratorsgenerators)
 - [XOR bytes](#xor-bytes)
   - [XOR Iterators](#xor-iterators)
+- [Basic Math](#basic-math)
+  - [Modular Arithmetic](#modular-arithmetic)
+  - [Exponentiation](#exponentiation)
+  - [Modular Exponentiation](#modular-exponentiation)
 - [Random](#random)
   - [Generate random number](#generate-random-number)
   - [Generate random `bytes`](#generate-random-bytes)
@@ -34,6 +38,7 @@
 - [Python Features](#python-features)
   - [Inline Functions (lambda)](#inline-functions-lambda)
   - [Type Hints/Annotations](#type-hintsannotations)
+  - [TypedDict](#typeddict)
 - [CLI](#cli)
   - [Arguments Parsing](#arguments-parsing)
   - [Fail](#fail)
@@ -425,6 +430,78 @@ def xor(*args: typing.Union[bytes, typing.Iterable[bytes]]) -> bytes:
     )
 ```
 
+## Basic Math
+
+### Modular Arithmetic
+
+- https://en.wikipedia.org/wiki/Modular_arithmetic
+- https://docs.python.org/3.10/reference/datamodel.html#object.__mod__
+- https://docs.python.org/3.10/library/operator.html#operator.mod
+
+In the example below `9 mod 5` is congruent to `4`, because `4` is the
+remainder when `9` is divided by `5`.
+
+```python
+>>> 9 % 5
+4
+>>> [i % 5 for i in range(10)]
+[0, 1, 2, 3, 4, 0, 1, 2, 3, 4]
+```
+
+### Exponentiation
+
+- https://docs.python.org/3.10/reference/datamodel.html#object.__pow__
+- https://docs.python.org/3.10/library/operator.html#operator.pow
+
+In some cases, you [need to be careful how you do
+exponentiation](https://stackoverflow.com/a/18965845), but for most purposes,
+the standard `**` operator is adequate (particularly when you don't have to
+worry about overflow).
+
+```python
+>>> 2 ** 3
+8
+>>> 16 ** .5
+4.0
+```
+
+You can also use the built-in `pow` function:
+
+```python
+>>> pow(2, 3)
+8
+>>> pow(16, .5)
+4.0
+```
+
+### Modular Exponentiation
+
+- https://docs.python.org/3/library/functions.html#pow
+
+While it is possible to perform modular exponentiation using the `**` operator,
+it is not recommended unless working with small integers:
+
+```python
+>>> 2 ** 8 % 3
+1
+```
+
+The above expression will first perform the full exponentiation before
+performing any modulation, which can be very expensive for large exponents. The
+built-in `pow` function, on the other hand, takes in a modulus as an optional
+third argument, and performs modulation on each round of exponentiation,
+keeping the internal working values bounded by the modulus. This makes the
+built-in `pow` function _much_ more efficient when working with large
+exponents:
+
+```python
+>>> from timeit import timeit
+>>> timeit(lambda: 2 ** 10000 % 17)
+19.87240996499895
+>>> timeit(lambda: pow(2, 10000, 17))
+0.7652179340075236
+```
+
 ## Random
 
 ### Generate random number
@@ -525,24 +602,45 @@ def bar(param: <param type>) -> <return type>:
 ```
 
 If the code is type-annotated most IDEs can statically validate it for you
-although you might need to install appropriate extensions. You can also validate
-types in CLI. For example given (see [`./types.py`](./types.py)):
-
-```python
-def foo(a: str) -> bytes:
-    return True
-
-
-foo(1)
-```
-
-`mypy` will produce:
+although you might need to install appropriate extensions. You can also
+validate types in CLI. For example, given the included
+[`sample_types.py`](./sample_types.py), `mypy` will produce:
 
 ```bash
-➜ mypy types.py
-types.py:2: error: Incompatible return value type (got "bool", expected "bytes")
-types.py:5: error: Argument 1 to "foo" has incompatible type "int"; expected "str"
-Found 2 errors in 1 file (checked 1 source file)
+mypy types.py
+➜ mypy sample_types.py
+sample_types.py:4: error: Incompatible return value type (got "bool", expected "bytes")
+sample_types.py:6: error: Argument 1 to "foo" has incompatible type "int"; expected "str"
+sample_types.py:16: error: Extra key "bar" for TypedDict "MyData"
+Found 3 errors in 1 file (checked 1 source file)
+```
+
+### TypedDict
+
+- https://docs.python.org/3.10/library/typing.html#typing.TypedDict
+
+As of 3.8, python's `typing` module provides the `TypedDict` class, allowing
+you to specify the member types and key names of a `dict`. This is useful for
+declaring data classes as a distinct type, while still affording the ease of
+use of a conventional dict. From the docs:
+
+> TypedDict declares a dictionary type that expects all of its instances to
+> have a certain set of keys, where each key is associated with a value of a
+> consistent type. This expectation is not checked at runtime but is only
+> enforced by type checkers.
+
+Here's how to use it:
+
+```python3
+>>> import typing
+>>> class MyData(typing.TypedDict):
+...     a: int
+...     b: int
+...
+>>> def foo(data: MyData) -> MyData:
+...     return data
+>>> foo({"a": 0, "b": 0}) # passes type checks
+>>> foo({"foo": 0})       # fails type checks
 ```
 
 ## CLI
