@@ -8,6 +8,7 @@
   - [Convert `bytes` back to hex-encoded string](#convert-bytes-back-to-hex-encoded-string)
   - [Inspect each byte within `bytes`](#inspect-each-byte-within-bytes)
   - [Convert array of integers to `bytes`](#convert-array-of-integers-to-bytes)
+  - [Convert single integer to bytes and back](#convert-single-integer-to-bytes-and-back)
 - [String Manipulation](#string-manipulation)
   - [Convert `bytes` to `str`](#convert-bytes-to-str)
   - [Convert `str` to `bytes`](#convert-str-to-bytes)
@@ -55,6 +56,11 @@
   - [Debugger](#debugger)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+**NOTE**: This document is meant for informational and reference purposes. Any
+instructions or guidance given on assignments or tests supersedes any
+directives here (although if there are **factual** discrepances across course
+materials, please point that out to the TAs or professor so we can reconcile).
 
 ## Byte manipulation
 
@@ -107,6 +113,46 @@ Unless you understand the difference, `bytes` is simpler to use than
 `bytearray`. `bytes` is immutable whereas `bytearray` is mutable. We dont need
 any performance optimizations `bytearray` provides for these assignments so
 `bytes` is sufficient here.
+
+### Convert single integer to bytes and back
+
+We can convert an `int` to a `bytes` using
+[`int.to_bytes`](https://docs.python.org/3/library/stdtypes.html#int.to_bytes).
+For example, to render the `bytes` prepresenting an integer value of `1` in
+unsigned big-endian bytes, you could do the following for `0x00`-padding
+lengths of 1, 2, and 8:
+
+```
+>>> one = 1
+>>> one.to_bytes(length=1, byteorder="big", signed=False)
+b'\x01'
+>>> one.to_bytes(length=2, byteorder="big", signed=False)
+b'\x00\x01'
+>>> one.to_bytes(length=8, byteorder="big", signed=False)
+b'\x00\x00\x00\x00\x00\x00\x00\x01'
+```
+
+Above, `byteorder` refers to
+[endianness](https://en.wikipedia.org/wiki/Endianness), and `signed` refers to
+[integer
+signedness](https://en.wikipedia.org/wiki/Signed_number_representations). A
+value of `unsigned` means that the highest-order bit is **not** reserved for
+the integer's sign, and that consequently all possible values for the integer
+are >= 0.
+
+We can then use
+[`int.from_bytes`](https://docs.python.org/3/library/stdtypes.html#int.from_bytes)
+to convert the `bytes` back to an `int`, again specifying endianness and
+signedness. When we do so and compare the result to our original integer, we
+can see that they are equal:
+
+```
+>>> one_bytes = one.to_bytes(8, "big")
+>>> one == int.from_bytes(one_bytes, byteorder="big", signed=False)
+True
+>>> one == int.from_bytes(one_bytes, byteorder="big", signed=False), one
+(True, 1)
+```
 
 ## String Manipulation
 
