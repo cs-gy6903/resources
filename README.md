@@ -32,6 +32,8 @@
   - [Modular Arithmetic](#modular-arithmetic)
   - [Exponentiation](#exponentiation)
   - [Modular Exponentiation](#modular-exponentiation)
+- [Advanced Math](#advanced-math)
+  - [Elliptic Curves](#elliptic-curves)
 - [Random](#random)
   - [Generate random number](#generate-random-number)
   - [Generate random `bytes`](#generate-random-bytes)
@@ -547,6 +549,16 @@ exponents:
 >>> timeit(lambda: pow(2, 10000, 17))
 0.7652179340075236
 ```
+
+## Advanced Math
+
+### Elliptic Curves
+
+- https://andrea.corbellini.name/ecc/interactive/modk-mul.html (interactive!)
+- https://curves.xargs.org/ (animated!)
+- https://en.wikipedia.org/wiki/Elliptic-curve_cryptography#Implementation
+- https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication
+- https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
 
 ## Random
 
